@@ -1,0 +1,21 @@
+{
+  "name": "basic-website",
+  "version": "1.0.0",
+  "description": "Creates a basic website using Express.",
+  "main": "app.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JBdesign53/basic-website.git"
+  },
+  "author": "Jeffrey Busch",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/JBdesign53/basic-website/issues"
+  },
+  "homepage": "https://github.com/JBdesign53/basic-website#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-handlebars": "^3.0.0"
+  }
+}
