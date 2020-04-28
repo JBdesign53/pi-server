@@ -17,6 +17,9 @@ const http = require('http').Server(app);
 const port = 80;
 
 
+const si = require('systeminformation');
+
+
 // Body-parser middleware eg. for POST requests
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ 'limit': '100mb', 'extended': 'true' }));
@@ -44,6 +47,7 @@ require('./views/form/route.js')(app);
 
 // The form will be submitted using AJAX.
 require('./views/api-form/route.js')(app);
+require('./views/api-system/route.js')(app);
 
 
 // Start the Express server

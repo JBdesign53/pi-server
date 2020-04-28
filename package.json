@@ -16,6 +16,7 @@
   "homepage": "https://github.com/JBdesign53/basic-website#readme",
   "dependencies": {
     "express": "^4.16.3",
-    "express-handlebars": "^3.0.0"
+    "express-handlebars": "^3.0.0",
+    "systeminformation": "^4.23.8"
   }
 }
