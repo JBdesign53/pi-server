@@ -5,11 +5,23 @@ Method:   GET
 
 https://systeminformation.io/
 
+
+TODO:
+
+Most function calls do net require parameters (except a callback).
+Some function calls require 1 or more parameters. These can be set as a query string in the form:
+/api/sys/inetchecksite&google.com.au
+
+Most functions from SI return JSON.
+Some functions return text. These will be converted to JSON.
+
 */
 
 const path = require('path');
 const si = require('systeminformation');
 
+// Expose all the functions in systeminformation() as API endpoints.
+// Match each endpoint URL to a systeminformation() function.
 var siFuncObj = [];
 var routeArr = [];
 var name, siRoutes;
@@ -24,7 +36,7 @@ for(name in si){
 siRoutes = '|';
 siRoutes += routeArr.join('|');
 
-console.log('SI', siFuncObj);
+// console.log('SI', siFuncObj);
 
 
 module.exports = function(app){
@@ -33,16 +45,53 @@ module.exports = function(app){
   console.log(route);
 
   async function submitQuery(req, res, next){
-    var path = req.originalUrl;
-    var pathArr = path.split('/');
-    var key = pathArr[pathArr.length - 1]; 
-    var siFunc = siFuncObj[key];
+    // We want the 'function' name part of the page eg.
+    // cpu from /api/sys/cpu?blah#ldskl
+    var url = req.originalUrl;
+
+    // Remove query string and URL fragment.
+    var arr = url.split('?');
+    url = arr[0];
+    arr = url.split('#');
+    url = arr[0];
+    
+    // Get SI function being reqested in the url.
+    // Note there is a leading / in the url.
+    url = url.split('/')[3];
+
+    // Match the URL to the SI function.
+    var siFunc = siFuncObj[url];
+
+    // Check how many parameters the function expects.
+    // Exclude the last parameter as it's the callback.
+    var siFuncParams = siFunc.length - 1;
+    
+    var qsParams = 0;
+    for(name in req.query){
+      qsParams++;
+    }
+
+    console.log(siFuncParams, qsParams)
+
+    if(qsParams == siFuncParams){
+      var arguments = [];
+
+      for(name in req.query){
+        arguments.push(name);
+      }
+
+      console.log('arg length', siFuncParams);
+      console.log('qs', req.query);
+      console.log('arg', arguments);
+
+      siFunc(arguments)
+        .then(data => sendResponse(data))
+        .catch(error => console.error(error));
+    }else{
+      sendResponse({'error':'Incorrect number of arguments. Expected ' + siFuncParams + '.'});
+    }
 
     //sendResponse(si.time());
-
-    siFunc()
-      .then(data => sendResponse(data))
-      .catch(error => console.error(error));
 
     function sendResponse(json){
       res.set('Content-Type', 'application/json');
