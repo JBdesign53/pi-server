@@ -15,6 +15,8 @@ Some function calls require 1 or more parameters. These can be set as a query st
 Most functions from SI return JSON.
 Some functions return text. These will be converted to JSON.
 
+https://stackoverflow.com/questions/3914557/passing-arguments-forward-to-another-javascript-function
+
 */
 
 const path = require('path');
@@ -74,17 +76,24 @@ module.exports = function(app){
     console.log(siFuncParams, qsParams)
 
     if(qsParams == siFuncParams){
-      var arguments = [];
+      var argsArr = [];
 
       for(name in req.query){
-        arguments.push(name);
+        argsArr.push(name);
       }
 
       console.log('arg length', siFuncParams);
       console.log('qs', req.query);
-      console.log('arg', arguments);
+      console.log('arg', argsArr);
 
-      siFunc(arguments)
+      /*
+      Function can have:
+        0 arguments
+        1+ arguments
+      */
+
+      // siFunc(argsArr)
+      siFunc()
         .then(data => sendResponse(data))
         .catch(error => console.error(error));
     }else{
