@@ -73,18 +73,17 @@ module.exports = function(app){
       qsParams++;
     }
 
-    console.log(siFuncParams, qsParams)
+    console.log('SI args', siFuncParams);
+    console.log('QS args', qsParams);
 
-    if(qsParams == siFuncParams){
+    if(qsParams >= siFuncParams){
       var argsArr = [];
 
       for(name in req.query){
         argsArr.push(name);
       }
 
-      console.log('arg length', siFuncParams);
-      console.log('qs', req.query);
-      console.log('arg', argsArr);
+      console.log('QS Args', argsArr);
 
       /*
       Function can have:
