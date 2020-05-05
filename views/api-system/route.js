@@ -1,21 +1,52 @@
 /*
 
-URL:      /api/system/[lowercase System Information module function names]
+URL:      /api/system/[lowercase System Information module function name]?[optional arguments]
 Method:   GET
 
-https://systeminformation.io/
+
+# System Information HTTP API
+
+Creates a web accessible HTTP API which exposes data from the System Information (SI) NPM module.
 
 
-TODO:
+## Using the API
 
-Most function calls do net require parameters (except a callback).
-Some function calls require 1 or more parameters. These can be set as a query string in the form:
-/api/sys/inetchecksite&google.com.au
+An API url takes the form `/api/system/sifuncname` where `sifuncname` is the SI function name in lowercase. For example to see the SI value for `cpuFlags(cb)` you would use the path `/api/system/cpuflags`.
 
-Most functions from SI return JSON.
-Some functions return text. These will be converted to JSON.
+Note: When referring to the System Information documentation the callback `cb` argument should be ignored. Do not pass a value for it when using the API.
 
-https://stackoverflow.com/questions/3914557/passing-arguments-forward-to-another-javascript-function
+If an SI function requires additional arguments (ie. ignore using the cb argument), these should be appended to the API url as a query string. For example the SI function `inetChecksite('google.com', cb)` would be accessed through the API at `/api/system//inetchecksite?google.com`.
+
+With query strings, only the parameter key is used and any value is ignored.
+
+Please see the additional example API urls below. Visit https://systeminformation.io/ for a full list of System Information functions.
+
+
+## Example API Calls
+
+In the examples below, the number of arguments expected by an SI function are appended to the query string. The query string is the portion of the URL after the '?'.
+
+Keep in mind the callback argument is ignored and not counted.
+
+SI function              SI API url                                 Expected query string parameters
+cpu(cb)                  /api/system/cpu                            0
+cpuFlags(cb)             /api/system/cpuflags                       0
+inetChecksite(url, cb)   /api/system/inetchecksite?apple.com.au     1
+
+
+
+## Argument Errors
+
+If you don't pass the required number of arguments you will receive an error. This is an example of not passing the required number of arguments in the query string:
+
+```
+{"error":	"Not enough parameters. Expected 1 but got 0."}
+```
+
+
+## API Return Values
+
+Most functions from SI return data in JSON format, however some functions return a string value. When making requests through the API all strings are converted to JSON with the key named `data` eg. `{'data' : 'string value'}`
 
 */
 
@@ -38,13 +69,8 @@ for(name in si){
 siRoutes = '|';
 siRoutes += routeArr.join('|');
 
-// console.log('SI', siFuncObj);
-
-
 module.exports = function(app){
-  var route = '/api/sys/' + '(' + siRoutes + ')';
-
-  console.log(route);
+  var route = '/api/system/' + '(' + siRoutes + ')';
 
   async function submitQuery(req, res, next){
     // We want the 'function' name part of the page eg.
@@ -73,35 +99,32 @@ module.exports = function(app){
       qsParams++;
     }
 
-    console.log('SI args', siFuncParams);
-    console.log('QS args', qsParams);
-
-    if(qsParams >= siFuncParams){
+    if(qsParams == siFuncParams){
+      var i;
       var argsArr = [];
 
       for(name in req.query){
         argsArr.push(name);
       }
 
-      console.log('QS Args', argsArr);
-
-      /*
-      Function can have:
-        0 arguments
-        1+ arguments
-      */
-
-      // siFunc(argsArr)
-      siFunc()
+      siFunc(...argsArr)
         .then(data => sendResponse(data))
         .catch(error => console.error(error));
     }else{
-      sendResponse({'error':'Incorrect number of arguments. Expected ' + siFuncParams + '.'});
+      if(qsParams < siFuncParams){
+        sendResponse({'error': `Not enough parameters. Expected ${siFuncParams} but got ${qsParams}.`});
+      }else{
+        sendResponse({'error': `Too many parameters. Expected ${siFuncParams} but got ${qsParams}.`});
+      }
     }
 
-    //sendResponse(si.time());
+    function sendResponse(data){
+      var json = data;
 
-    function sendResponse(json){
+      if(typeof data !== 'object'){
+        json = {'data': data};
+      }
+
       res.set('Content-Type', 'application/json');
       res.send(json);
       next();
